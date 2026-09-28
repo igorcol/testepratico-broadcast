@@ -16,3 +16,9 @@ Thumbs.db
 .vscode/*
 vsdocs/
 !.vscode/extensions.json
+
+
+# Skills instaladas pelo firebase
+.agents/
+.claude/
+skills-lock.json

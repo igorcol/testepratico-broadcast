@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "target": "es2023",
+    "outDir": "lib",
+    "rootDir": "src",
+    "sourceMap": true,
+    "skipLibCheck": true,
+
+    /* Type safety */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "compileOnSave": true,
+  "include": ["src"]
+}
