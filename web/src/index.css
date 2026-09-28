@@ -1,0 +1,12 @@
+@layer theme, base, mui, components, utilities;
+
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary: var(--mui-palette-primary-main);
+  --color-primary-contrast: var(--mui-palette-primary-contrastText);
+}
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+}
