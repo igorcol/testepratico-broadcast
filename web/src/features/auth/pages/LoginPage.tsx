@@ -1,40 +1,57 @@
-import { useState } from 'react'
-import { Button, Typography } from '@mui/material'
-import { logOut, signIn, signUp } from '@/features/auth/api'
+import { Alert, Button, Link, TextField, Typography } from '@mui/material'
+import { Link as RouterLink } from 'react-router'
+import { paths } from '@/app/paths'
+import { signIn } from '@/features/auth/api'
 import { getAuthErrorMessage } from '@/features/auth/authErrors'
-import { useAuth } from '@/features/auth/useAuth'
-
-const TEST_CREDENTIALS = { email: 'teste@teste.com', password: '123456' }
+import { loginSchema } from '@/features/auth/schemas'
+import { useFormSubmit } from '@/shared/hooks/useFormSubmit'
 
 export function LoginPage() {
-  const authState = useAuth()
-  const [errorMessage, setErrorMessage] = useState('')
-
-  const runAction = async (action: () => Promise<unknown>) => {
-    setErrorMessage('')
-    try {
-      await action()
-    } catch (error) {
-      setErrorMessage(getAuthErrorMessage(error))
-    }
-  }
+  const { handleSubmit, fieldErrors, formError, isSubmitting } = useFormSubmit({
+    schema: loginSchema,
+    onSubmit: signIn,
+    getErrorMessage: getAuthErrorMessage,
+  })
 
   return (
-    <div className="flex flex-col gap-3">
-      <Typography>
-        Status: {authState.status}
-        {authState.status === 'authenticated' && ` (${authState.user.email})`}
+    <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <Typography variant="h5" component="h1">
+        Entrar
       </Typography>
-      <Button variant="outlined" onClick={() => runAction(() => signUp(TEST_CREDENTIALS))}>
-        Cadastrar teste
+
+      <TextField
+        name="email"
+        type="email"
+        label="E-mail"
+        autoComplete="email"
+        autoFocus
+        fullWidth
+        error={Boolean(fieldErrors.email)}
+        helperText={fieldErrors.email}
+      />
+
+      <TextField
+        name="password"
+        type="password"
+        label="Senha"
+        autoComplete="current-password"
+        fullWidth
+        error={Boolean(fieldErrors.password)}
+        helperText={fieldErrors.password}
+      />
+
+      {formError && <Alert severity="error">{formError}</Alert>}
+
+      <Button type="submit" variant="contained" size="large" loading={isSubmitting}>
+        Entrar
       </Button>
-      <Button variant="outlined" onClick={() => runAction(() => signIn(TEST_CREDENTIALS))}>
-        Entrar teste
-      </Button>
-      <Button variant="outlined" onClick={() => runAction(logOut)}>
-        Sair
-      </Button>
-      {errorMessage && <Typography color="error">{errorMessage}</Typography>}
-    </div>
+
+      <Typography variant="body2" className="text-center">
+        Não tem conta?{' '}
+        <Link component={RouterLink} to={paths.register}>
+          Criar conta
+        </Link>
+      </Typography>
+    </form>
   )
 }
