@@ -5,10 +5,12 @@ service cloud.firestore {
 
     // ---------- Helpers ----------
 
+    // Tem usuário logado
     function isSignedIn() {
       return request.auth != null;
     }
 
+    // Documento pertence a quem está logado
     function isTenantOwner(data) {
       return isSignedIn() && data.tenantId == request.auth.uid;
     }
@@ -17,9 +19,23 @@ service cloud.firestore {
       return value is string && value.trim().size() > 0 && value.size() <= 80;
     }
 
+    // Conexão existe - é do mesmo tenant e não foi excluída
+    function isActiveConnectionOfTenant(connectionId) {
+      let connectionPath = /databases/$(database)/documents/connections/$(connectionId);
+      return exists(connectionPath)
+        && get(connectionPath).data.tenantId == request.auth.uid
+        && get(connectionPath).data.deletedAt == null;
+    }
+
+    // Telefone no padrão E.164
+    function isValidPhone(value) {
+      return value is string && value.matches('^[+][1-9][0-9]{7,14}$');
+    }
+
     // ---------- Connections ----------
 
     match /connections/{connectionId} {
+      // Conexão nova com campos exatos, no próprio tenant e datas do servidor
       function isValidNewConnection(data) {
         return data.keys().hasOnly(['tenantId', 'name', 'createdAt', 'updatedAt', 'deletedAt'])
           && data.keys().hasAll(['tenantId', 'name', 'createdAt', 'updatedAt', 'deletedAt'])
@@ -30,46 +46,38 @@ service cloud.firestore {
           && data.deletedAt == null;
       }
 
+      // Edição que muda só o nome
       function isRename() {
         return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'updatedAt'])
           && isValidName(request.resource.data.name);
       }
 
+      // Edição que só marca a conexão como excluída
       function isSoftDelete() {
         return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deletedAt', 'updatedAt'])
           && request.resource.data.deletedAt == request.time;
       }
 
+      // Lê só as próprias conexões
       allow read: if isTenantOwner(resource.data);
 
+      // Cria conexão só pra si mesmo
       allow create: if isSignedIn() && isValidNewConnection(request.resource.data);
 
-      // Conexão excluída - somente leitura
+      // Renomeia ou exclui. Conexão já excluída fica travada
       allow update: if isTenantOwner(resource.data)
         && resource.data.deletedAt == null
         && request.resource.data.updatedAt == request.time
         && (isRename() || isSoftDelete());
 
+      // Nunca apaga de verdade
       allow delete: if false;
     }
 
-
     // ---------- Contacts ----------
 
-    // Conexão existente, do mesmo tenant e não foi excluída
-    function isActiveConnectionOfTenant(connectionId) {
-      let connectionPath = /databases/$(database)/documents/connections/$(connectionId);
-      return exists(connectionPath)
-        && get(connectionPath).data.tenantId == request.auth.uid
-        && get(connectionPath).data.deletedAt == null;
-    }
-
-    // Padrão E.164
-    function isValidPhone(value) {
-      return value is string && value.matches('^[+][1-9][0-9]{7,14}$');
-    }
-
     match /contacts/{contactId} {
+      // Contato novo com campos exatos numa conexão ativa do próprio tenant
       function isValidNewContact(data) {
         return data.keys().hasOnly(['tenantId', 'connectionId', 'name', 'phone', 'createdAt', 'updatedAt'])
           && data.keys().hasAll(['tenantId', 'connectionId', 'name', 'phone', 'createdAt', 'updatedAt'])
@@ -82,6 +90,7 @@ service cloud.firestore {
           && data.updatedAt == request.time;
       }
 
+      // Muda só nome e telefone
       function isValidContactUpdate() {
         return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'phone', 'updatedAt'])
           && isValidName(request.resource.data.name)
@@ -89,19 +98,20 @@ service cloud.firestore {
           && request.resource.data.updatedAt == request.time;
       }
 
+      // Lê só os próprios contatos
       allow read: if isTenantOwner(resource.data);
 
+      // Cria contato só em conexão ativa que é sua
       allow create: if isSignedIn() && isValidNewContact(request.resource.data);
 
-      // Conexão excluida deixa os contatos só pra leitura
+      // Edita só enquanto a conexão estiver ativa
       allow update: if isTenantOwner(resource.data)
         && isActiveConnectionOfTenant(resource.data.connectionId)
         && isValidContactUpdate();
 
+      // Apaga, mas só enquanto a conexão estiver ativa
       allow delete: if isTenantOwner(resource.data)
         && isActiveConnectionOfTenant(resource.data.connectionId);
     }
-
   }
-
 }
