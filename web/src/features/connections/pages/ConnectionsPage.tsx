@@ -4,7 +4,7 @@ import AddIcon from '@mui/icons-material/Add'
 import { softDeleteConnection } from '@/features/connections/api'
 import { ConnectionFormDialog } from '@/features/connections/components/ConnectionFormDialog'
 import { ConnectionList } from '@/features/connections/components/ConnectionList'
-import { useConnections } from '@/features/connections/hooks/useConnections'
+import { useActiveConnections } from '@/features/connections/hooks/useActiveConnections'
 import type { Connection } from '@/features/connections/schemas'
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog'
 import { EmptyState } from '@/shared/components/EmptyState'
@@ -18,7 +18,7 @@ type DialogState =
   | { type: 'delete'; connection: Connection }
 
 export function ConnectionsPage() {
-  const connectionsState = useConnections()
+  const connectionsState = useActiveConnections()
   const [dialog, setDialog] = useState<DialogState>({ type: 'closed' })
 
   const openCreateDialog = () => setDialog({ type: 'create' })

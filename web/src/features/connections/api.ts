@@ -10,37 +10,41 @@ import {
   where,
   type FirestoreError,
   type Unsubscribe,
-} from 'firebase/firestore'
+} from "firebase/firestore";
 import {
   connectionSchema,
   type Connection,
   type ConnectionFormValues,
-} from '@/features/connections/schemas'
-import { db } from '@/shared/lib/firebase'
-import { parseDocument } from '@/shared/lib/firestore'
+} from "@/features/connections/schemas";
+import { db } from "@/shared/lib/firebase";
+import { parseDocument } from "@/shared/lib/firestore";
 
-const connectionsCollection = collection(db, 'connections')
+const connectionsCollection = collection(db, "connections");
 
-export const subscribeToConnections = (
+export const subscribeToActiveConnections = (
   tenantId: string,
   onData: (connections: Connection[]) => void,
   onError: (error: FirestoreError) => void,
 ): Unsubscribe => {
   const activeConnectionsQuery = query(
     connectionsCollection,
-    where('tenantId', '==', tenantId),
-    where('deletedAt', '==', null),
-    orderBy('createdAt', 'desc'),
-  )
+    where("tenantId", "==", tenantId),
+    where("deletedAt", "==", null),
+    orderBy("createdAt", "desc"),
+  );
 
   return onSnapshot(
     activeConnectionsQuery,
     (snapshot) => {
-      onData(snapshot.docs.flatMap((document) => parseDocument(connectionSchema, document) ?? []))
+      onData(
+        snapshot.docs.flatMap(
+          (document) => parseDocument(connectionSchema, document) ?? [],
+        ),
+      );
     },
     onError,
-  )
-}
+  );
+};
 
 export const subscribeToConnection = (
   connectionId: string,
@@ -50,28 +54,36 @@ export const subscribeToConnection = (
   onSnapshot(
     doc(connectionsCollection, connectionId),
     (snapshot) => {
-      onData(snapshot.exists() ? parseDocument(connectionSchema, snapshot) : null)
+      onData(
+        snapshot.exists() ? parseDocument(connectionSchema, snapshot) : null,
+      );
     },
     onError,
-  )
+  );
 
-export const createConnection = (tenantId: string, { name }: ConnectionFormValues) =>
+export const createConnection = (
+  tenantId: string,
+  { name }: ConnectionFormValues,
+) =>
   addDoc(connectionsCollection, {
     tenantId,
     name,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
     deletedAt: null,
-  })
+  });
 
-export const renameConnection = (connectionId: string, { name }: ConnectionFormValues) =>
+export const renameConnection = (
+  connectionId: string,
+  { name }: ConnectionFormValues,
+) =>
   updateDoc(doc(connectionsCollection, connectionId), {
     name,
     updatedAt: serverTimestamp(),
-  })
+  });
 
 export const softDeleteConnection = (connectionId: string) =>
   updateDoc(doc(connectionsCollection, connectionId), {
     deletedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
-  })
+  });
