@@ -3,6 +3,8 @@ import { AppLayout } from '@/app/layouts/AppLayout'
 import { AuthLayout } from '@/app/layouts/AuthLayout'
 import { NotFoundPage } from '@/app/NotFoundPage'
 import { paths } from '@/app/paths'
+import { RedirectIfAuthenticated } from '@/features/auth/components/RedirectIfAuthenticated'
+import { RequireAuth } from '@/shared/components/RequireAuth' 
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
 import { ConnectionDetailPage } from '@/features/connections/pages/ConnectionDetailPage'
@@ -11,17 +13,27 @@ import { ConnectionsPage } from '@/features/connections/pages/ConnectionsPage'
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to={paths.connections} replace /> },
   {
-    element: <AuthLayout />,
+    element: <RedirectIfAuthenticated />,
     children: [
-      { path: paths.login, element: <LoginPage /> },
-      { path: paths.register, element: <RegisterPage /> },
+      {
+        element: <AuthLayout />,
+        children: [
+          { path: paths.login, element: <LoginPage /> },
+          { path: paths.register, element: <RegisterPage /> },
+        ],
+      },
     ],
   },
   {
-    element: <AppLayout />,
+    element: <RequireAuth />,
     children: [
-      { path: paths.connections, element: <ConnectionsPage /> },
-      { path: paths.connectionDetail, element: <ConnectionDetailPage /> },
+      {
+        element: <AppLayout />,
+        children: [
+          { path: paths.connections, element: <ConnectionsPage /> },
+          { path: paths.connectionDetail, element: <ConnectionDetailPage /> },
+        ],
+      },
     ],
   },
   { path: '*', element: <NotFoundPage /> },
