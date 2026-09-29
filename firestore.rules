@@ -54,4 +54,53 @@ service cloud.firestore {
     }
 
   }
+
+      // ---------- Contacts ----------
+
+    // Conexão existente, do mesmo tenant e não foi excluída
+    function isActiveConnectionOfTenant(connectionId) {
+      let connectionPath = /databases/$(database)/documents/connections/$(connectionId);
+      return exists(connectionPath)
+        && get(connectionPath).data.tenantId == request.auth.uid
+        && get(connectionPath).data.deletedAt == null;
+    }
+
+    // Padrão E.164
+    function isValidPhone(value) {
+      return value is string && value.matches('^[+][1-9][0-9]{7,14}$');
+    }
+
+    match /contacts/{contactId} {
+      function isValidNewContact(data) {
+        return data.keys().hasOnly(['tenantId', 'connectionId', 'name', 'phone', 'createdAt', 'updatedAt'])
+          && data.keys().hasAll(['tenantId', 'connectionId', 'name', 'phone', 'createdAt', 'updatedAt'])
+          && data.tenantId == request.auth.uid
+          && data.connectionId is string
+          && isActiveConnectionOfTenant(data.connectionId)
+          && isValidName(data.name)
+          && isValidPhone(data.phone)
+          && data.createdAt == request.time
+          && data.updatedAt == request.time;
+      }
+
+      function isValidContactUpdate() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'phone', 'updatedAt'])
+          && isValidName(request.resource.data.name)
+          && isValidPhone(request.resource.data.phone)
+          && request.resource.data.updatedAt == request.time;
+      }
+
+      allow read: if isTenantOwner(resource.data);
+
+      allow create: if isSignedIn() && isValidNewContact(request.resource.data);
+
+      // Conexão excluida deixa os contatos só pra leitura
+      allow update: if isTenantOwner(resource.data)
+        && isActiveConnectionOfTenant(resource.data.connectionId)
+        && isValidContactUpdate();
+
+      allow delete: if isTenantOwner(resource.data)
+        && isActiveConnectionOfTenant(resource.data.connectionId);
+    }
+
 }
