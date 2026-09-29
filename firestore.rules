@@ -53,9 +53,8 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-  }
 
-      // ---------- Contacts ----------
+    // ---------- Contacts ----------
 
     // Conexão existente, do mesmo tenant e não foi excluída
     function isActiveConnectionOfTenant(connectionId) {
@@ -102,5 +101,7 @@ service cloud.firestore {
       allow delete: if isTenantOwner(resource.data)
         && isActiveConnectionOfTenant(resource.data.connectionId);
     }
+
+  }
 
 }
