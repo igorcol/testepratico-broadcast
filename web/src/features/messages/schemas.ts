@@ -52,18 +52,22 @@ const futureDateField = z
   .refine((date) => !Number.isNaN(date.getTime()), 'Data inválida.')
   .refine((date) => date.getTime() > Date.now(), 'Escolha um horário no futuro.')
 
-export const sentMessageEditSchema = z.object({
+const messageBodySchema = z.object({
   contactIds: contactIdsField,
   content: contentField,
 })
 
-export const scheduledMessageEditSchema = sentMessageEditSchema.extend({
+const scheduledMessageBodySchema = messageBodySchema.extend({
   scheduledAt: futureDateField,
 })
 
-export const newMessageSchema = z.discriminatedUnion('sendMode', [
-  sentMessageEditSchema.extend({ sendMode: z.literal('now') }),
-  scheduledMessageEditSchema.extend({ sendMode: z.literal('schedule') }),
+export const messageComposerSchema = z.discriminatedUnion('mode', [
+  messageBodySchema.extend({ mode: z.literal('send-now') }),
+  scheduledMessageBodySchema.extend({ mode: z.literal('schedule') }),
+  messageBodySchema.extend({ mode: z.literal('edit-sent') }),
+  scheduledMessageBodySchema.extend({ mode: z.literal('edit-scheduled') }),
 ])
 
-export type NewMessageValues = z.infer<typeof newMessageSchema>
+export type MessageComposerValues = z.infer<typeof messageComposerSchema>
+
+export type ComposerMode = MessageComposerValues['mode']

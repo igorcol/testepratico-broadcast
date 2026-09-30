@@ -9,6 +9,7 @@ import { EmptyState } from '@/shared/components/EmptyState'
 import type { SubscriptionState } from '@/shared/hooks/useFirestoreSubscription'
 import { formatDateTime } from '@/shared/lib/formatters'
 import { ContactsTab } from '@/features/contacts/components/ContactsTab'
+import { MessagesTab } from '@/features/messages/components/MessagesTab'
 
 const CONNECTION_TABS = ['contacts', 'messages'] as const
 
@@ -110,10 +111,7 @@ function ConnectionDetail({ connectionId }: ConnectionDetailProps) {
           {activeTab === 'contacts' ? (
             <ContactsTab connectionId={view.connection.id} />
           ) : (
-            <EmptyState
-              title="Mensagens em breve"
-              description="..."
-            />
+            <MessagesTab connectionId={view.connection.id} />
           )}
         </div>
       </div>
