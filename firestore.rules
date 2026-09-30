@@ -3,7 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ---------- Helpers ----------
+    //* ---------- Helpers ----------
 
     // Tem usuário logado
     function isSignedIn() {
@@ -32,7 +32,7 @@ service cloud.firestore {
       return value is string && value.matches('^[+][1-9][0-9]{7,14}$');
     }
 
-    // ---------- Connections ----------
+    //* ---------- Connections ----------
 
     match /connections/{connectionId} {
       // Conexão nova com campos exatos, no próprio tenant e datas do servidor
@@ -74,7 +74,7 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // ---------- Contacts ----------
+    //* ---------- Contacts ----------
 
     match /contacts/{contactId} {
       // Contato novo com campos exatos numa conexão ativa do próprio tenant
@@ -110,6 +110,88 @@ service cloud.firestore {
         && isValidContactUpdate();
 
       // Apaga, mas só enquanto a conexão estiver ativa
+      allow delete: if isTenantOwner(resource.data)
+        && isActiveConnectionOfTenant(resource.data.connectionId);
+    }
+
+    //* ---------- Messages ----------
+
+    match /messages/{messageId} {
+    
+      function isValidContent(value) {
+        return value is string && value.trim().size() > 0 && value.size() <= 1000;
+      }
+
+      // 1 a 500 destinatários
+      function isValidRecipients(value) {
+        return value is list && value.size() > 0 && value.size() <= 500;
+      }
+
+      // Enviar agora nasce enviada com a hora do servidor
+      function isImmediateSend(data) {
+        return data.status == 'sent'
+          && data.sentAt == request.time
+          && data.scheduledAt == null;
+      }
+
+      // Agendar
+      function isScheduling(data) {
+        return data.status == 'scheduled'
+          && data.scheduledAt is timestamp
+          && data.scheduledAt > request.time
+          && data.sentAt == null;
+      }
+
+      // Mensagem nova com campos exatos
+      function isValidNewMessage(data) {
+        return data.keys().hasOnly(['tenantId', 'connectionId', 'content', 'recipients', 'status', 'scheduledAt', 'sentAt', 'editedAt', 'createdAt', 'updatedAt'])
+          && data.keys().hasAll(['tenantId', 'connectionId', 'content', 'recipients', 'status', 'scheduledAt', 'sentAt', 'editedAt', 'createdAt', 'updatedAt'])
+          && data.tenantId == request.auth.uid
+          && data.connectionId is string
+          && isActiveConnectionOfTenant(data.connectionId)
+          && isValidContent(data.content)
+          && isValidRecipients(data.recipients)
+          && data.editedAt == null
+          && data.createdAt == request.time
+          && data.updatedAt == request.time
+          && (isImmediateSend(data) || isScheduling(data));
+      }
+
+      // Editar
+      function isValidEdit() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['content', 'recipients', 'scheduledAt', 'editedAt', 'updatedAt'])
+          && isValidContent(request.resource.data.content)
+          && isValidRecipients(request.resource.data.recipients)
+          && request.resource.data.editedAt == request.time
+          && request.resource.data.updatedAt == request.time;
+      }
+
+      // Agendada pode trocar a data desde que continue no futuro
+      function isValidScheduledEdit() {
+        return resource.data.status == 'scheduled'
+          && request.resource.data.scheduledAt is timestamp
+          && request.resource.data.scheduledAt > request.time;
+      }
+
+      // Enviada não muda data
+      function isValidSentEdit() {
+        return resource.data.status == 'sent'
+          && request.resource.data.scheduledAt == resource.data.scheduledAt;
+      }
+
+      // Lê só as próprias mensagens
+      allow read: if isTenantOwner(resource.data);
+
+      // Cria enviando agora ou agendando
+      allow create: if isSignedIn() && isValidNewMessage(request.resource.data);
+
+      // Edita agendada ou enviada - cancelada trava
+      allow update: if isTenantOwner(resource.data)
+        && isActiveConnectionOfTenant(resource.data.connectionId)
+        && isValidEdit()
+        && (isValidScheduledEdit() || isValidSentEdit());
+
+      // Apaga
       allow delete: if isTenantOwner(resource.data)
         && isActiveConnectionOfTenant(resource.data.connectionId);
     }
