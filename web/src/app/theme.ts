@@ -7,8 +7,8 @@ const BRAND_LIGHT = '#10B981'
 
 const SLATE_900 = '#0F172A'
 const SLATE_500 = '#64748B'
-const BORDER = '#E2E8F0'
-const BORDER_HOVER = '#CBD5E1'
+const BORDER = '#CBD5E1'
+const BORDER_HOVER = '#94A3B8'
 
 export const brandGradient = `linear-gradient(135deg, ${BRAND_DARK} 0%, ${BRAND_LIGHT} 100%)`
 
