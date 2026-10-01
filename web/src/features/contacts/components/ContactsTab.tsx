@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Alert, Button, InputAdornment, MenuItem, TextField, Typography } from '@mui/material'
+import { Alert, Button, InputAdornment, MenuItem, Paper, TextField, Typography } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import SearchIcon from '@mui/icons-material/Search'
 import { useSearchParams } from 'react-router'
@@ -67,7 +67,7 @@ export function ContactsTab({ connectionId }: ContactsTabProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-3">
+      <Paper variant="outlined" className="flex flex-wrap items-center gap-3 p-3">
         <TextField
           type="search"
           size="small"
@@ -102,7 +102,7 @@ export function ContactsTab({ connectionId }: ContactsTabProps) {
         <Button variant="contained" startIcon={<AddIcon />} onClick={openCreateDialog}>
           Novo contato
         </Button>
-      </div>
+      </Paper>
 
       {contactsState.status === 'loading' && <ListSkeleton />}
 

@@ -1,5 +1,5 @@
 import type { SyntheticEvent } from 'react'
-import { Alert, Button, Skeleton, Tab, Tabs, Typography } from '@mui/material'
+import { Alert, Button, Paper, Skeleton, Tab, Tabs, Typography } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { Link as RouterLink, useParams, useSearchParams } from 'react-router'
 import { paths } from '@/app/paths'
@@ -10,6 +10,10 @@ import type { SubscriptionState } from '@/shared/hooks/useFirestoreSubscription'
 import { formatDateTime } from '@/shared/lib/formatters'
 import { ContactsTab } from '@/features/contacts/components/ContactsTab'
 import { MessagesTab } from '@/features/messages/components/MessagesTab'
+import ForumRoundedIcon from '@mui/icons-material/ForumRounded'
+import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded'
+import SendRoundedIcon from '@mui/icons-material/SendRounded'
+import { IconTile } from '@/shared/components/IconTile'
 
 const CONNECTION_TABS = ['contacts', 'messages'] as const
 
@@ -77,7 +81,17 @@ function ConnectionDetail({ connectionId }: ConnectionDetailProps) {
     )
   }
 
-  if (view.status === 'loading') return <Skeleton variant="text" width={280} height={48} />
+  if (view.status === 'loading') {
+    return (
+      <Paper variant="outlined" className="flex items-center gap-4 p-6">
+        <Skeleton variant="rounded" width={56} height={56} />
+        <div className="flex-1">
+          <Skeleton width="40%" height={40} />
+          <Skeleton width="25%" />
+        </div>
+      </Paper>
+    )
+  }
 
   if (view.status === 'not-found') return <ConnectionNotFound />
 
@@ -85,35 +99,60 @@ function ConnectionDetail({ connectionId }: ConnectionDetailProps) {
     return <Alert severity="error">Não foi possível carregar a conexão. Recarregue a página.</Alert>
   }
 
-  return (
+    return (
     <>
-      <header>
-        <Typography variant="h4" component="h1">
-          {view.connection.name}
-        </Typography>
-        <Typography color="text.secondary">
-          Criada em {formatDateTime(view.connection.createdAt)}
-        </Typography>
-      </header>
+      <Paper variant="outlined" className="overflow-hidden">
+        <header className="flex flex-wrap items-center gap-4 p-6">
+          <IconTile icon={<ForumRoundedIcon />} variant="gradient" size="lg" />
+          <div className="min-w-0 flex-1">
+            <Typography variant="h4" component="h1" className="wrap-break-word">
+              {view.connection.name}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Criada em {formatDateTime(view.connection.createdAt)}
+            </Typography>
+          </div>
+          <span className="inline-flex items-center gap-2 rounded-full bg-success/10 px-3 py-1 text-sm font-semibold text-success">
+            <span aria-hidden className="size-2 rounded-full bg-success" />
+            Ativa
+          </span>
+        </header>
 
-      <div>
-        <Tabs value={activeTab} onChange={handleTabChange} className="border-b border-divider">
-          <Tab label="Contatos" value="contacts" id="tab-contacts" aria-controls="tabpanel-contacts" />
-          <Tab label="Mensagens" value="messages" id="tab-messages" aria-controls="tabpanel-messages" />
-        </Tabs>
-
-        <div
-          role="tabpanel"
-          id={`tabpanel-${activeTab}`}
-          aria-labelledby={`tab-${activeTab}`}
-          className="pt-6"
-        >
-          {activeTab === 'contacts' ? (
-            <ContactsTab connectionId={view.connection.id} />
-          ) : (
-            <MessagesTab connectionId={view.connection.id} />
-          )}
+        {/* Abas em pílula, a selecionada ganha fundo verde claro no lugar da linha embaixo */}
+        <div className="border-t border-divider px-4 py-3">
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            className="min-h-0 [&_.MuiTabs-indicator]:hidden **:[[role=tablist]]:gap-2"
+          >
+            <Tab
+              label="Contatos"
+              value="contacts"
+              id="tab-contacts"
+              aria-controls="tabpanel-contacts"
+              icon={<PeopleAltRoundedIcon fontSize="small" />}
+              iconPosition="start"
+              className="min-h-0 rounded-xl px-4 py-2.5 aria-selected:bg-primary/10"
+            />
+            <Tab
+              label="Mensagens"
+              value="messages"
+              id="tab-messages"
+              aria-controls="tabpanel-messages"
+              icon={<SendRoundedIcon fontSize="small" />}
+              iconPosition="start"
+              className="min-h-0 rounded-xl px-4 py-2.5 aria-selected:bg-primary/10"
+            />
+          </Tabs>
         </div>
+      </Paper>
+
+      <div role="tabpanel" id={`tabpanel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
+        {activeTab === 'contacts' ? (
+          <ContactsTab connectionId={view.connection.id} />
+        ) : (
+          <MessagesTab connectionId={view.connection.id} />
+        )}
       </div>
     </>
   )
