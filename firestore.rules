@@ -173,23 +173,18 @@ service cloud.firestore {
           && request.resource.data.scheduledAt > request.time;
       }
 
-      // Enviada não muda data
-      function isValidSentEdit() {
-        return resource.data.status == 'sent'
-          && request.resource.data.scheduledAt == resource.data.scheduledAt;
-      }
-
+   
       // Lê só as próprias mensagens
       allow read: if isTenantOwner(resource.data);
 
       // Cria enviando agora ou agendando
       allow create: if isSignedIn() && isValidNewMessage(request.resource.data);
 
-      // Edita agendada ou enviada - cancelada trava
+      // Edita só agendada
       allow update: if isTenantOwner(resource.data)
         && isActiveConnectionOfTenant(resource.data.connectionId)
         && isValidEdit()
-        && (isValidScheduledEdit() || isValidSentEdit());
+        && isValidScheduledEdit();
 
       // Apaga
       allow delete: if isTenantOwner(resource.data)

@@ -83,13 +83,6 @@ export const scheduleMessage = (
     updatedAt: serverTimestamp(),
   })
 
-export const editSentMessage = (messageId: string, { content, recipients }: MessageContent) =>
-  updateDoc(doc(messagesCollection, messageId), {
-    content,
-    recipients,
-    editedAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  })
 
 export const editScheduledMessage = (
   messageId: string,

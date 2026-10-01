@@ -251,22 +251,11 @@ describe('messages: edição', () => {
     )
   })
 
-  it('dono edita o texto de uma enviada', async () => {
-    await seedSentMessage()
-    await assertSucceeds(
-      updateDoc(messageRefAs(ANA_UID), {
-        content: 'Texto corrigido',
-        editedAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      }),
-    )
-  })
-
-  it('não muda a data de uma enviada', async () => {
+  it('não edita mensagem enviada', async () => {
     await seedSentMessage()
     await assertFails(
       updateDoc(messageRefAs(ANA_UID), {
-        scheduledAt: minutesFromNow(60),
+        content: 'Texto corrigido',
         editedAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       }),

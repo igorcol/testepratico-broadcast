@@ -64,7 +64,6 @@ const scheduledMessageBodySchema = messageBodySchema.extend({
 export const messageComposerSchema = z.discriminatedUnion('mode', [
   messageBodySchema.extend({ mode: z.literal('send-now') }),
   scheduledMessageBodySchema.extend({ mode: z.literal('schedule') }),
-  messageBodySchema.extend({ mode: z.literal('edit-sent') }),
   scheduledMessageBodySchema.extend({ mode: z.literal('edit-scheduled') }),
 ])
 

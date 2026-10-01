@@ -19,7 +19,6 @@ import { useAuthenticatedUser } from '@/features/auth/useAuth'
 import type { Contact } from '@/features/contacts/schemas'
 import {
   editScheduledMessage,
-  editSentMessage,
   scheduleMessage,
   sendMessageNow,
 } from '@/features/messages/api'
@@ -69,14 +68,12 @@ const DIALOG_TITLES: Record<ComposerMode, string> = {
   'send-now': 'Nova mensagem',
   schedule: 'Nova mensagem',
   'edit-scheduled': 'Editar mensagem agendada',
-  'edit-sent': 'Editar mensagem enviada',
 }
 
 const SUBMIT_LABELS: Record<ComposerMode, string> = {
   'send-now': 'Enviar agora',
   schedule: 'Agendar',
   'edit-scheduled': 'Salvar',
-  'edit-sent': 'Salvar',
 }
 
 // Busca no seletor por nome ou telefone
@@ -84,8 +81,6 @@ const filterRecipients = createFilterOptions<Recipient>({
   stringify: ({ name, phone }) => `${name} ${phone}`,
 })
 
-const getEditMode = (message: Message): ComposerMode =>
-  message.status === 'scheduled' ? 'edit-scheduled' : 'edit-sent'
 
 const requireMessageId = (message: Message | undefined) => {
   if (!message) throw new Error('Edit mode requires a message')
@@ -115,7 +110,7 @@ export function MessageComposerDialog({
   )
   const [contentLength, setContentLength] = useState(message?.content.length ?? 0)
 
-  const mode: ComposerMode = message ? getEditMode(message) : newMessageMode
+  const mode: ComposerMode = message ? 'edit-scheduled' : newMessageMode
   const recipientOptions = buildRecipientOptions(contacts, message?.recipients ?? [])
   const showsDateField = mode === 'schedule' || mode === 'edit-scheduled'
 
@@ -131,8 +126,6 @@ export function MessageComposerDialog({
         return sendMessageNow(uid, connectionId, body)
       case 'schedule':
         return scheduleMessage(uid, connectionId, body, values.scheduledAt)
-      case 'edit-sent':
-        return editSentMessage(requireMessageId(message), body)
       case 'edit-scheduled':
         return editScheduledMessage(requireMessageId(message), body, values.scheduledAt)
     }
@@ -159,12 +152,6 @@ export function MessageComposerDialog({
         <DialogTitle>{DIALOG_TITLES[mode]}</DialogTitle>
 
         <DialogContent className="flex flex-col gap-5">
-          {mode === 'edit-sent' && (
-            <Alert severity="info">
-              Ela continua como enviada e passa a aparecer marcada como editada.
-            </Alert>
-          )}
-
           <div className="flex flex-col gap-1 pt-2">
             <Autocomplete
               multiple

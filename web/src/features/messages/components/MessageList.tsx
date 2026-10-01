@@ -98,9 +98,11 @@ function MessageCard({ message, onEdit, onDelete }: MessageCardProps) {
           </span>
         )}
         <div className="ml-auto flex gap-1">
-          <IconButton size="small" aria-label="Editar mensagem" onClick={() => onEdit(message)}>
-            <EditOutlinedIcon fontSize="small" />
-          </IconButton>
+          {message.status === 'scheduled' && (
+            <IconButton size="small" aria-label="Editar mensagem" onClick={() => onEdit(message)}>
+              <EditOutlinedIcon fontSize="small" />
+            </IconButton>
+          )}
           <IconButton size="small" aria-label="Excluir mensagem" onClick={() => onDelete(message)}>
             <DeleteOutlined fontSize="small" />
           </IconButton>
