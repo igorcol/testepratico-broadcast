@@ -46,7 +46,7 @@ export function ConnectionDetailPage() {
   const { connectionId } = useParams()
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 lg:min-h-0 lg:flex-1">
       <Button
         component={RouterLink}
         to={paths.connections}
@@ -100,7 +100,7 @@ function ConnectionDetail({ connectionId }: ConnectionDetailProps) {
     return <Alert severity="error">Não foi possível carregar a conexão. Recarregue a página.</Alert>
   }
 
-    return (
+  return (
     <>
       <Paper variant="outlined" className="overflow-hidden">
         <header className="flex flex-wrap items-center gap-4 p-6">
@@ -143,7 +143,12 @@ function ConnectionDetail({ connectionId }: ConnectionDetailProps) {
         </div>
       </Paper>
 
-      <div role="tabpanel" id={`tabpanel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
+      <div
+        role="tabpanel"
+        id={`tabpanel-${activeTab}`}
+        aria-labelledby={`tab-${activeTab}`}
+        className="lg:flex lg:min-h-0 lg:flex-1 lg:flex-col"
+      >
         {activeTab === 'contacts' ? (
           <ContactsTab connectionId={view.connection.id} />
         ) : (

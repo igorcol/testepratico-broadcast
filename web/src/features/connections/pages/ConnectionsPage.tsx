@@ -16,6 +16,7 @@ import { ConfirmDialog } from '@/shared/components/ConfirmDialog'
 import { EmptyState } from '@/shared/components/EmptyState'
 import { GradientBanner } from '@/shared/components/GradientBanner'
 import { getFirestoreErrorMessage } from '@/shared/lib/firestoreErrors'
+import { ScrollRegion } from '@/shared/components/ScrollRegion'
 
 type DialogState =
   | { type: 'closed' }
@@ -37,7 +38,7 @@ export function ConnectionsPage() {
   const greetingName = email?.split('@')[0] ?? ''
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 lg:min-h-0 lg:flex-1">
       <GradientBanner
         eyebrow={greetingName ? `Olá, ${greetingName}` : undefined}
         title="Suas conexões"
@@ -86,11 +87,13 @@ export function ConnectionsPage() {
             }
           />
         ) : (
-          <ConnectionList
-            connections={connectionsState.data}
-            onRename={(connection) => setDialog({ type: 'rename', connection })}
-            onDelete={(connection) => setDialog({ type: 'delete', connection })}
-          />
+          <ScrollRegion label="Lista de conexões">
+            <ConnectionList
+              connections={connectionsState.data}
+              onRename={(connection) => setDialog({ type: 'rename', connection })}
+              onDelete={(connection) => setDialog({ type: 'delete', connection })}
+            />
+          </ScrollRegion>
         ))}
 
       {dialog.type === 'create' && <ConnectionFormDialog onClose={closeDialog} />}

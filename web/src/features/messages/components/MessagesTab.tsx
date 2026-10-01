@@ -20,6 +20,7 @@ import { EmptyState } from '@/shared/components/EmptyState'
 import { ListSkeleton } from '@/shared/components/ListSkeleton'
 import { getFirestoreErrorMessage } from '@/shared/lib/firestoreErrors'
 import { useContacts } from '@/features/contacts/hooks/useContact'
+import { ScrollRegion } from '@/shared/components/ScrollRegion'
 
 const FILTER_LABELS: Record<MessageFilter, string> = {
   all: 'Todas',
@@ -86,7 +87,7 @@ export function MessagesTab({ connectionId }: MessagesTabProps) {
   const closeDialog = () => setDialog({ type: 'closed' })
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 lg:min-h-0 lg:flex-1">
       <Paper variant="outlined" className="flex flex-wrap items-center justify-between gap-3 p-3">
         <ToggleButtonGroup
           exclusive
@@ -155,11 +156,13 @@ export function MessagesTab({ connectionId }: MessagesTabProps) {
       )}
 
       {visibleMessages.length > 0 && (
-        <MessageList
-          messages={visibleMessages}
-          onEdit={(message) => setDialog({ type: 'edit', message })}
-          onDelete={(message) => setDialog({ type: 'delete', message })}
-        />
+        <ScrollRegion label="Lista de mensagens">
+          <MessageList
+            messages={visibleMessages}
+            onEdit={(message) => setDialog({ type: 'edit', message })}
+            onDelete={(message) => setDialog({ type: 'delete', message })}
+          />
+        </ScrollRegion>
       )}
 
       {dialog.type === 'compose' && (

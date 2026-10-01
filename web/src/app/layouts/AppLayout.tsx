@@ -6,7 +6,7 @@ import { BrandLogo } from '@/shared/components/BrandLogo'
 
 export function AppLayout() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen lg:flex lg:h-screen lg:flex-col">
       <AppBar
         position="sticky"
         color="transparent"
@@ -25,7 +25,11 @@ export function AppLayout() {
         </Container>
       </AppBar>
 
-      <Container component="main" maxWidth="lg" className="py-8">
+      <Container
+        component="main"
+        maxWidth="lg"
+        className="py-8 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col"
+      >
         <Outlet />
       </Container>
     </div>

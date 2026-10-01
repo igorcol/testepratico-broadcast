@@ -19,6 +19,7 @@ import { EmptyState } from '@/shared/components/EmptyState'
 import { ListSkeleton } from '@/shared/components/ListSkeleton'
 import { getFirestoreErrorMessage } from '@/shared/lib/firestoreErrors'
 import { useContacts } from '../hooks/useContact'
+import { ScrollRegion } from '@/shared/components/ScrollRegion'
 
 const SORT_LABELS: Record<ContactSort, string> = {
   'name-asc': 'Nome (A-Z)',
@@ -68,7 +69,7 @@ export function ContactsTab({ connectionId }: ContactsTabProps) {
     : `${allContacts.length} ${allContacts.length === 1 ? 'contato' : 'contatos'}`
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 lg:min-h-0 lg:flex-1">
       <Paper variant="outlined" className="flex flex-wrap items-center gap-3 p-3">
         <TextField
           type="search"
@@ -145,11 +146,13 @@ export function ContactsTab({ connectionId }: ContactsTabProps) {
           <Typography variant="body2" color="text.secondary">
             {contactsCountLabel}
           </Typography>
-          <ContactList
-            contacts={visibleContacts}
-            onEdit={(contact) => setDialog({ type: 'edit', contact })}
-            onDelete={(contact) => setDialog({ type: 'delete', contact })}
-          />
+          <ScrollRegion label="Lista de contatos">
+            <ContactList
+              contacts={visibleContacts}
+              onEdit={(contact) => setDialog({ type: 'edit', contact })}
+              onDelete={(contact) => setDialog({ type: 'delete', contact })}
+            />
+          </ScrollRegion>
         </>
       )}
 
