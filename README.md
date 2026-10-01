@@ -1,6 +1,7 @@
 <div align="center">
 
-# 📣 Broadcast
+# Broadcast de mensagens
+### Teste prático
 
 **Envio e agendamento de mensagens para contatos, com isolamento total entre clientes.**
 
