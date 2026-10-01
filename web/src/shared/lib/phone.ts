@@ -31,3 +31,26 @@ export const formatPhone = (phone: string): string => {
   const [, areaCode, prefix, suffix] = match
   return `+55 (${areaCode}) ${prefix}-${suffix}`
 }
+
+const MAX_BRAZIL_DIGITS = 11
+
+// Máscara enquanto digita (11) 3333-4444 ou (11) 91234-5678. 
+export const maskPhoneInput = (value: string): string => {
+  if (value.trimStart().startsWith('+')) return value
+
+  const digits = toDigits(value).slice(0, MAX_BRAZIL_DIGITS)
+  if (digits.length === 0) return ''
+  if (digits.length <= 2) return `(${digits}`
+
+  const areaCode = digits.slice(0, 2)
+  if (digits.length <= 6) return `(${areaCode}) ${digits.slice(2)}`
+
+  const hyphenPosition = digits.length === MAX_BRAZIL_DIGITS ? 7 : 6
+  return `(${areaCode}) ${digits.slice(2, hyphenPosition)}-${digits.slice(hyphenPosition)}`
+}
+
+// Brasileiro volta pro formato da máscar - internacional aparece como está no db
+export const toPhoneInputValue = (phone: string) =>
+  phone.startsWith(`+${BRAZIL_COUNTRY_CODE}`)
+    ? maskPhoneInput(phone.slice(BRAZIL_COUNTRY_CODE.length + 1))
+    : phone

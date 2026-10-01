@@ -12,7 +12,8 @@ import { createContact, updateContact } from '@/features/contacts/api'
 import { contactFormSchema, type Contact } from '@/features/contacts/schemas'
 import { useFormSubmit } from '@/shared/hooks/useFormSubmit'
 import { getFirestoreErrorMessage } from '@/shared/lib/firestoreErrors'
-import { formatPhone } from '@/shared/lib/phone'
+import { maskPhoneInput, toPhoneInputValue } from '@/shared/lib/phone'
+import { useState } from 'react'
 
 interface ContactFormDialogProps {
   connectionId: string
@@ -30,6 +31,8 @@ export function ContactFormDialog({
 }: ContactFormDialogProps) {
   const { uid } = useAuthenticatedUser()
   const isEditing = contact !== undefined
+
+  const [phoneInput, setPhoneInput] = useState(contact ? toPhoneInputValue(contact.phone) : '') // Mascara do input
 
   // Telefones já usados na conexão - tirando o do próprio contato quando é edição
   const takenPhones = new Set(
@@ -73,12 +76,14 @@ export function ContactFormDialog({
             name="phone"
             label="Telefone"
             type="tel"
-            placeholder="(11) 99999-8888"
-            defaultValue={contact ? formatPhone(contact.phone) : undefined}
+            placeholder="(11) 91234-5678"
+            value={phoneInput}
+            onChange={(event) => setPhoneInput(maskPhoneInput(event.target.value))}
             fullWidth
             autoComplete="off"
             error={Boolean(fieldErrors.phone)}
             helperText={fieldErrors.phone ?? 'DDD e número. Para outro país, comece com +.'}
+            slotProps={{ htmlInput: { inputMode: 'tel' } }}
           />
           {formError && <Alert severity="error">{formError}</Alert>}
         </DialogContent>
