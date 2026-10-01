@@ -40,6 +40,8 @@ import BoltRoundedIcon from '@mui/icons-material/BoltRounded'
 import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded'
 import { IconTile } from '@/shared/components/IconTile'
 import { DoneAllRounded, RemoveDoneRounded } from '@mui/icons-material'
+import { useToast } from '@/shared/toast/useToast'
+import { describeScheduled, describeSentNow } from '../notifications'
 
 type NewMessageMode = Extract<ComposerMode, 'send-now' | 'schedule'>
 
@@ -108,6 +110,7 @@ export function MessageComposerDialog({
   onClose,
 }: MessageComposerDialogProps) {
   const { uid } = useAuthenticatedUser()
+  const { showToast } = useToast()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -139,7 +142,7 @@ export function MessageComposerDialog({
     setSelectedRecipients(recipients)
   }
 
-  const saveMessage = (values: MessageComposerValues) => {
+  const saveMessage = async (values: MessageComposerValues): Promise<string> => {
     const recipientsById = new Map(recipientOptions.map((recipient) => [recipient.contactId, recipient]))
     const body = {
       content: values.content,
@@ -148,18 +151,22 @@ export function MessageComposerDialog({
 
     switch (values.mode) {
       case 'send-now':
-        return sendMessageNow(uid, connectionId, body)
+        await sendMessageNow(uid, connectionId, body)
+        return describeSentNow(body.recipients)
       case 'schedule':
-        return scheduleMessage(uid, connectionId, body, values.scheduledAt)
+        await scheduleMessage(uid, connectionId, body, values.scheduledAt)
+        return describeScheduled(values.scheduledAt)
       case 'edit-scheduled':
-        return editScheduledMessage(requireMessageId(message), body, values.scheduledAt)
+        await editScheduledMessage(requireMessageId(message), body, values.scheduledAt)
+        return 'Mensagem agendada atualizada'
     }
   }
 
   const { handleSubmit, fieldErrors, formError, isSubmitting } = useFormSubmit({
     schema: messageComposerSchema,
     onSubmit: async (values) => {
-      await saveMessage(values)
+      const successMessage = await saveMessage(values)
+      showToast(successMessage)
       onClose()
     },
     getErrorMessage: getFirestoreErrorMessage,

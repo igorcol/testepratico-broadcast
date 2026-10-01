@@ -3,8 +3,11 @@ import { Link as RouterLink, Outlet } from 'react-router'
 import { paths } from '@/app/paths'
 import { UserMenu } from '@/features/auth/components/UserMenu'
 import { BrandLogo } from '@/shared/components/BrandLogo'
+import { useScheduledSendNotifications } from '@/features/messages/hooks/useScheduledSendNotifications'
 
 export function AppLayout() {
+  useScheduledSendNotifications()
+
   return (
     <div className="min-h-screen lg:flex lg:h-screen lg:flex-col">
       <AppBar

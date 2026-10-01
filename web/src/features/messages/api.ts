@@ -98,3 +98,37 @@ export const editScheduledMessage = (
   })
 
 export const deleteMessage = (messageId: string) => deleteDoc(doc(messagesCollection, messageId))
+
+
+export const subscribeToSentSince = (
+  tenantId: string,
+  since: Date,
+  onSent: (messages: Message[]) => void,
+  onError: (error: FirestoreError) => void,
+): Unsubscribe => {
+  const sentSinceQuery = query(
+    messagesCollection,
+    where('tenantId', '==', tenantId),
+    where('sentAt', '>=', Timestamp.fromDate(since)),
+  )
+
+  let isInitialSnapshot = true
+
+  return onSnapshot(
+    sentSinceQuery,
+    (snapshot) => {
+      if (isInitialSnapshot) {
+        isInitialSnapshot = false
+        return
+      }
+
+      const newlySent = snapshot
+        .docChanges()
+        .filter(({ type }) => type === 'added')
+        .flatMap(({ doc: document }) => parseDocument(messageSchema, document) ?? [])
+
+      if (newlySent.length > 0) onSent(newlySent)
+    },
+    onError,
+  )
+}

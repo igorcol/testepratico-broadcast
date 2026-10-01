@@ -3,6 +3,7 @@ import { CssBaseline, GlobalStyles } from '@mui/material'
 import { StyledEngineProvider, ThemeProvider } from '@mui/material/styles'
 import { theme } from '@/app/theme'
 import { AuthProvider } from '@/features/auth/AuthProvider'
+import { ToastProvider } from '@/shared/toast/toastProvider'
 
 const CSS_LAYER_ORDER = '@layer theme, base, mui, components, utilities;'
 
@@ -16,7 +17,9 @@ export function AppProviders({ children }: AppProvidersProps) {
       <GlobalStyles styles={CSS_LAYER_ORDER} />
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <AuthProvider>{children}</AuthProvider>
+        <ToastProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ToastProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   )
