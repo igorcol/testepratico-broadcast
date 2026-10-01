@@ -8,7 +8,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControlLabel,
   Radio,
   RadioGroup,
   TextField,
@@ -37,8 +36,34 @@ import { useFormSubmit } from '@/shared/hooks/useFormSubmit'
 import { toDateTimeLocalValue } from '@/shared/lib/dateTimeLocal'
 import { getFirestoreErrorMessage } from '@/shared/lib/firestoreErrors'
 import { formatPhone } from '@/shared/lib/phone'
+import type { ReactNode } from 'react'
+import BoltRoundedIcon from '@mui/icons-material/BoltRounded'
+import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded'
+import { IconTile } from '@/shared/components/IconTile'
 
 type NewMessageMode = Extract<ComposerMode, 'send-now' | 'schedule'>
+
+interface SendModeOption {
+  value: NewMessageMode
+  title: string
+  description: string
+  icon: ReactNode
+}
+
+const SEND_MODE_OPTIONS: SendModeOption[] = [
+  {
+    value: 'send-now',
+    title: 'Enviar agora',
+    description: 'A mensagem sai assim que você confirmar.',
+    icon: <BoltRoundedIcon />,
+  },
+  {
+    value: 'schedule',
+    title: 'Agendar',
+    description: 'Escolha a data e o horário do envio.',
+    icon: <ScheduleRoundedIcon />,
+  },
+]
 
 const DIALOG_TITLES: Record<ComposerMode, string> = {
   'send-now': 'Nova mensagem',
@@ -213,15 +238,32 @@ export function MessageComposerDialog({
             <input type="hidden" name="mode" value={mode} />
           ) : (
             <RadioGroup
-              row
               name="mode"
               value={newMessageMode}
               onChange={(event) =>
                 setNewMessageMode(event.target.value === 'schedule' ? 'schedule' : 'send-now')
               }
+              aria-label="Como enviar"
+              className="grid gap-3 sm:grid-cols-2"
             >
-              <FormControlLabel value="send-now" control={<Radio />} label="Enviar agora" />
-              <FormControlLabel value="schedule" control={<Radio />} label="Agendar" />
+              {SEND_MODE_OPTIONS.map((option) => {
+                const isSelected = newMessageMode === option.value
+
+                return (
+                  <label
+                    key={option.value}
+                    className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 p-4 transition-colors has-focus-visible:ring-2 has-focus-visible:ring-primary ${isSelected ? 'border-primary bg-primary/5' : 'border-divider hover:border-slate-400'
+                      }`}
+                  >
+                    <Radio value={option.value} className="sr-only" />
+                    <IconTile icon={option.icon} size="sm" variant={isSelected ? 'gradient' : 'soft'} />
+                    <span className="flex flex-col gap-0.5">
+                      <span className="font-semibold">{option.title}</span>
+                      <span className="text-sm text-muted">{option.description}</span>
+                    </span>
+                  </label>
+                )
+              })}
             </RadioGroup>
           )}
 

@@ -1,5 +1,5 @@
 import { useState, type MouseEvent } from 'react'
-import { Alert, Button, ToggleButton, ToggleButtonGroup } from '@mui/material'
+import { Alert, Button, Paper, ToggleButton, ToggleButtonGroup } from '@mui/material'
 import SendIcon from '@mui/icons-material/Send'
 import { useSearchParams } from 'react-router'
 import { deleteMessage } from '@/features/messages/api'
@@ -86,17 +86,21 @@ export function MessagesTab({ connectionId }: MessagesTabProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <Paper variant="outlined" className="flex flex-wrap items-center justify-between gap-3 p-3">
         <ToggleButtonGroup
           exclusive
           size="small"
           value={filter}
           onChange={handleFilterChange}
           aria-label="Filtrar mensagens"
+          className="gap-1 rounded-xl bg-slate-100 p-1 [&_.MuiToggleButtonGroup-grouped]:rounded-lg [&_.MuiToggleButtonGroup-grouped]:border-0 [&_.MuiToggleButtonGroup-grouped]:px-3 [&_.MuiToggleButtonGroup-grouped.Mui-selected]:bg-white [&_.MuiToggleButtonGroup-grouped.Mui-selected]:text-primary [&_.MuiToggleButtonGroup-grouped.Mui-selected]:shadow-sm"
         >
           {MESSAGE_FILTERS.map((option) => (
             <ToggleButton key={option} value={option}>
-              {FILTER_LABELS[option]} ({counts[option]})
+              {FILTER_LABELS[option]}
+              <span className="ml-2 rounded-full bg-slate-200/80 px-1.5 text-xs tabular-nums">
+                {counts[option]}
+              </span>
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
@@ -109,7 +113,7 @@ export function MessagesTab({ connectionId }: MessagesTabProps) {
         >
           Nova mensagem
         </Button>
-      </div>
+      </Paper>
 
       {hasNoContacts && (
         <Alert
