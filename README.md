@@ -27,7 +27,6 @@
 - [Isolamento entre clientes](#-isolamento-entre-clientes)
 - [Como funciona o agendamento](#-como-funciona-o-agendamento)
 - [Decisões técnicas](#-decisões-técnicas)
-- [Limitações conhecidas](#-limitações-conhecidas)
 - [Estrutura do projeto](#-estrutura-do-projeto)
 - [Rodando localmente](#-rodando-localmente)
 
