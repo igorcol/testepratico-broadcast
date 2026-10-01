@@ -56,7 +56,7 @@ function BrandPanel() {
       <div className="relative">
         <BrandLogo size="lg" tone="light" />
       </div>
-conne
+      
       <div className="relative flex max-w-md flex-col gap-10">
         <div className="flex flex-col gap-3">
           <p className="text-4xl leading-tight font-extrabold tracking-tight">
