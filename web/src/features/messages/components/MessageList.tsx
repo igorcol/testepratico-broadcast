@@ -18,6 +18,7 @@ import type { Message, MessageStatus } from '@/features/messages/schemas'
 import { getAvatarColorClasses, getInitials } from '@/shared/lib/avatar'
 import { formatRelativeDateTime, formatTime, isSameDay } from '@/shared/lib/formatters'
 import { DeleteOutlined } from '@mui/icons-material'
+import { FormattedText } from '@/shared/components/FormattedText'
 
 interface StatusDisplay {
   label: string
@@ -160,11 +161,10 @@ function MessageCard({ message, onEdit, onDelete }: MessageCardProps) {
         className={`w-fit max-w-full rounded-2xl rounded-tl-sm px-4 py-3 sm:max-w-[85%] ${status.bubbleClasses}`}
       >
         <p
-          className={`text-[15px] leading-relaxed wrap-break-word whitespace-pre-wrap text-slate-800 ${
-            isExpanded ? '' : 'line-clamp-4'
-          }`}
+          className={`text-[15px] leading-relaxed wrap-break-word whitespace-pre-wrap text-slate-800 ${isExpanded ? '' : 'line-clamp-4'
+            }`}
         >
-          {content}
+          <FormattedText text={content} />
         </p>
 
         <div className="mt-1.5 flex items-center justify-end gap-3">

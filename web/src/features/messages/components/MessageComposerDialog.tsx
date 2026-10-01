@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import {
   Alert,
   Autocomplete,
@@ -8,9 +8,11 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   Radio,
   RadioGroup,
   TextField,
+  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
@@ -35,13 +37,18 @@ import { useFormSubmit } from '@/shared/hooks/useFormSubmit'
 import { toDateTimeLocalValue } from '@/shared/lib/dateTimeLocal'
 import { getFirestoreErrorMessage } from '@/shared/lib/firestoreErrors'
 import { formatPhone } from '@/shared/lib/phone'
-import type { ReactNode } from 'react'
 import BoltRoundedIcon from '@mui/icons-material/BoltRounded'
 import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded'
 import { IconTile } from '@/shared/components/IconTile'
 import { DoneAllRounded, RemoveDoneRounded } from '@mui/icons-material'
 import { useToast } from '@/shared/toast/useToast'
 import { describeScheduled, describeSentNow } from '../notifications'
+import CodeRoundedIcon from '@mui/icons-material/CodeRounded'
+import FormatBoldRoundedIcon from '@mui/icons-material/FormatBoldRounded'
+import FormatItalicRoundedIcon from '@mui/icons-material/FormatItalicRounded'
+import StrikethroughSRoundedIcon from '@mui/icons-material/StrikethroughSRounded'
+import { FormattedText } from '@/shared/components/FormattedText'
+import { FORMAT_MARKERS, toggleFormat, type FormatStyle } from '@/shared/lib/whatsappFormat'
 
 type NewMessageMode = Extract<ComposerMode, 'send-now' | 'schedule'>
 
@@ -66,6 +73,21 @@ const SEND_MODE_OPTIONS: SendModeOption[] = [
     icon: <ScheduleRoundedIcon />,
   },
 ]
+
+interface FormatAction {
+  style: FormatStyle
+  label: string
+  icon: ReactNode
+}
+
+const FORMAT_ACTIONS: FormatAction[] = [
+  { style: 'bold', label: 'Negrito (Ctrl+B)', icon: <FormatBoldRoundedIcon fontSize="small" /> },
+  { style: 'italic', label: 'Itálico (Ctrl+I)', icon: <FormatItalicRoundedIcon fontSize="small" /> },
+  { style: 'strike', label: 'Tachado', icon: <StrikethroughSRoundedIcon fontSize="small" /> },
+  { style: 'mono', label: 'Monoespaçado', icon: <CodeRoundedIcon fontSize="small" /> },
+]
+
+const SHORTCUT_STYLES: Partial<Record<string, FormatStyle>> = { b: 'bold', i: 'italic' }
 
 const DIALOG_TITLES: Record<ComposerMode, string> = {
   'send-now': 'Nova mensagem',
@@ -118,7 +140,9 @@ export function MessageComposerDialog({
   const [selectedRecipients, setSelectedRecipients] = useState<Recipient[]>(
     message?.recipients ?? [],
   )
-  const [contentLength, setContentLength] = useState(message?.content.length ?? 0)
+
+  const [content, setContent] = useState(message?.content ?? '')
+  const contentInputRef = useRef<HTMLTextAreaElement>(null)
 
   const mode: ComposerMode = message ? 'edit-scheduled' : newMessageMode
   const recipientOptions = buildRecipientOptions(contacts, message?.recipients ?? [])
@@ -140,6 +164,33 @@ export function MessageComposerDialog({
       return
     }
     setSelectedRecipients(recipients)
+  }
+
+  const applyFormat = (style: FormatStyle) => {
+    const textarea = contentInputRef.current
+    if (!textarea) return
+
+    const result = toggleFormat(
+      content,
+      textarea.selectionStart,
+      textarea.selectionEnd,
+      FORMAT_MARKERS[style],
+    )
+    setContent(result.value)
+    requestAnimationFrame(() => {
+      textarea.focus()
+      textarea.setSelectionRange(result.selectionStart, result.selectionEnd)
+    })
+  }
+
+  const handleContentKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!event.ctrlKey && !event.metaKey) return
+
+    const style = SHORTCUT_STYLES[event.key.toLowerCase()]
+    if (!style) return
+
+    event.preventDefault()
+    applyFormat(style)
   }
 
   const saveMessage = async (values: MessageComposerValues): Promise<string> => {
@@ -177,7 +228,7 @@ export function MessageComposerDialog({
       open
       onClose={isSubmitting ? undefined : onClose}
       fullWidth
-      maxWidth="sm"
+      maxWidth="md"
       fullScreen={isMobile}
     >
       <form noValidate onSubmit={handleSubmit}>
@@ -270,18 +321,56 @@ export function MessageComposerDialog({
             />
           </div>
 
-          <TextField
-            name="content"
-            label="Mensagem"
-            defaultValue={message?.content}
-            onChange={(event) => setContentLength(event.target.value.length)}
-            multiline
-            minRows={4}
-            fullWidth
-            error={Boolean(fieldErrors.content)}
-            helperText={fieldErrors.content ?? `${contentLength}/${MAX_CONTENT_LENGTH}`}
-            slotProps={{ htmlInput: { maxLength: MAX_CONTENT_LENGTH } }}
-          />
+          <div className="flex flex-col gap-2">
+            <TextField
+              name="content"
+              label="Mensagem"
+              value={content}
+              onChange={(event) => setContent(event.target.value)}
+              onKeyDown={handleContentKeyDown}
+              inputRef={contentInputRef}
+              multiline
+              minRows={5}
+              fullWidth
+              error={Boolean(fieldErrors.content)}
+              helperText={fieldErrors.content}
+              slotProps={{ htmlInput: { maxLength: MAX_CONTENT_LENGTH } }}
+            />
+
+            <div className="flex items-center gap-1">
+              {FORMAT_ACTIONS.map(({ style, label, icon }) => (
+                <Tooltip key={style} title={label}>
+                  <IconButton
+                    size="small"
+                    aria-label={label}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => applyFormat(style)}
+                  >
+                    {icon}
+                  </IconButton>
+                </Tooltip>
+              ))}
+              <span className="ml-auto text-xs text-muted tabular-nums">
+                {content.length}/{MAX_CONTENT_LENGTH}
+              </span>
+            </div>
+
+            {content.trim() && (
+              <div className="flex flex-col gap-1.5">
+                <span className="text-xs font-semibold text-muted">Pré-visualização</span>
+                <div
+                  tabIndex={0}
+                  role="region"
+                  aria-label="Pré-visualização da mensagem"
+                  className="max-h-20 w-fit max-w-full overflow-y-auto rounded-2xl rounded-tl-sm bg-emerald-50 px-4 py-3 ring-1 ring-emerald-100 scrollbar-thin focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                >
+                  <p className="text-[15px] leading-relaxed wrap-break-word whitespace-pre-wrap text-slate-800">
+                    <FormattedText text={content} />
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
 
           {message ? (
             <input type="hidden" name="mode" value={mode} />
