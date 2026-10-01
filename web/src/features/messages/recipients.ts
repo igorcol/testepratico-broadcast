@@ -17,3 +17,13 @@ export const buildRecipientOptions = (
 
   return [...contactRecipients, ...removedContacts]
 }
+
+const NAMES_IN_SUMMARY = 2
+
+// Resumo curto pro card
+export const summarizeRecipients = (recipients: Recipient[]) => {
+  const names = recipients.slice(0, NAMES_IN_SUMMARY).map(({ name }) => name)
+  const remaining = recipients.length - names.length
+
+  return remaining > 0 ? `${names.join(', ')} e mais ${remaining}` : names.join(' e ')
+}
