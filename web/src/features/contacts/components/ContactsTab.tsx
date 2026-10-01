@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Alert, Button, InputAdornment, MenuItem, Paper, TextField, Typography } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
+import PersonAddAlt1RoundedIcon from '@mui/icons-material/PersonAddAlt1Rounded'
 import SearchIcon from '@mui/icons-material/Search'
+import SearchOffRoundedIcon from '@mui/icons-material/SearchOffRounded'
 import { useSearchParams } from 'react-router'
 import { deleteContact } from '@/features/contacts/api'
 import { ContactFormDialog } from '@/features/contacts/components/ContactFormDialog'
@@ -112,6 +114,7 @@ export function ContactsTab({ connectionId }: ContactsTabProps) {
 
       {contactsState.status === 'success' && allContacts.length === 0 && (
         <EmptyState
+          icon={<PersonAddAlt1RoundedIcon />}
           title="Nenhum contato nesta conexão"
           description="Adicione contatos para poder enviar mensagens para eles."
           action={
@@ -126,6 +129,7 @@ export function ContactsTab({ connectionId }: ContactsTabProps) {
         allContacts.length > 0 &&
         visibleContacts.length === 0 && (
           <EmptyState
+            icon={<SearchOffRoundedIcon />}
             title="Nenhum contato encontrado"
             description={`Nada corresponde a "${search}".`}
             action={

@@ -11,6 +11,7 @@ import { formatDateTime } from '@/shared/lib/formatters'
 import { ContactsTab } from '@/features/contacts/components/ContactsTab'
 import { MessagesTab } from '@/features/messages/components/MessagesTab'
 import ForumRoundedIcon from '@mui/icons-material/ForumRounded'
+import LinkOffRoundedIcon from '@mui/icons-material/LinkOffRounded'
 import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded'
 import SendRoundedIcon from '@mui/icons-material/SendRounded'
 import { IconTile } from '@/shared/components/IconTile'
@@ -161,6 +162,7 @@ function ConnectionDetail({ connectionId }: ConnectionDetailProps) {
 function ConnectionNotFound() {
   return (
     <EmptyState
+      icon={<LinkOffRoundedIcon />}
       title="Conexão não encontrada"
       description="Ela pode ter sido excluída, ou o link está incorreto."
       action={

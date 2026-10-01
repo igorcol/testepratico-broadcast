@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Alert, Button } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import CampaignRoundedIcon from '@mui/icons-material/CampaignRounded'
+import ForumRoundedIcon from '@mui/icons-material/ForumRounded'
 import { useAuthenticatedUser } from '@/features/auth/useAuth'
 import { softDeleteConnection } from '@/features/connections/api'
 import { ConnectionFormDialog } from '@/features/connections/components/ConnectionFormDialog'
@@ -75,6 +76,7 @@ export function ConnectionsPage() {
       {connectionsState.status === 'success' &&
         (connectionsState.data.length === 0 ? (
           <EmptyState
+            icon={<ForumRoundedIcon />}
             title="Nenhuma conexão ainda"
             description="Crie sua primeira conexão para cadastrar contatos e enviar mensagens."
             action={

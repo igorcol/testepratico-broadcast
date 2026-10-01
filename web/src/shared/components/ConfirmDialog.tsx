@@ -8,6 +8,8 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material'
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded'
+import { IconTile } from '@/shared/components/IconTile'
 
 interface ConfirmDialogProps {
   title: string
@@ -44,16 +46,27 @@ export function ConfirmDialog({
 
   return (
     <Dialog open onClose={isConfirming ? undefined : onClose} fullWidth maxWidth="xs">
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent className="flex flex-col gap-4">
+      <div className="flex flex-col items-center gap-3 px-6 pt-7 text-center">
+        <IconTile icon={<WarningAmberRoundedIcon />} variant="danger" size="lg" />
+        <DialogTitle className="p-0">{title}</DialogTitle>
+      </div>
+
+      <DialogContent className="flex flex-col gap-4 pt-2 text-center">
         <DialogContentText>{description}</DialogContentText>
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={isConfirming}>
+
+      <DialogActions className="gap-2 px-6 pb-6">
+        <Button fullWidth variant="outlined" color="inherit" onClick={onClose} disabled={isConfirming}>
           Cancelar
         </Button>
-        <Button color="error" variant="contained" onClick={handleConfirm} loading={isConfirming}>
+        <Button
+          fullWidth
+          variant="contained"
+          color="error"
+          onClick={handleConfirm}
+          loading={isConfirming}
+        >
           {confirmLabel}
         </Button>
       </DialogActions>

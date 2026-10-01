@@ -1,5 +1,6 @@
 import { useState, type MouseEvent } from 'react'
 import { Alert, Button, Paper, ToggleButton, ToggleButtonGroup } from '@mui/material'
+import MarkChatUnreadRoundedIcon from '@mui/icons-material/MarkChatUnreadRounded'
 import SendIcon from '@mui/icons-material/Send'
 import { useSearchParams } from 'react-router'
 import { deleteMessage } from '@/features/messages/api'
@@ -136,6 +137,7 @@ export function MessagesTab({ connectionId }: MessagesTabProps) {
 
       {!isLoading && !hasError && visibleMessages.length === 0 && (
         <EmptyState
+          icon={<MarkChatUnreadRoundedIcon />}
           title={EMPTY_FILTER_TITLES[filter]}
           description={
             filter === 'all'
