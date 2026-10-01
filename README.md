@@ -75,6 +75,7 @@
 - 🔗 **Estado na URL**: aba, busca, ordenação e filtro sobrevivem ao F5 e podem ser compartilhados
 - 📱 **100% Responsivo**
 - 🧪 **Testes automatizados** das regras de segurança, das Cloud Functions e das regras de negócio do frontend
+- 🎯 **Filtro de mensagens por contato**
 
 ---
 
