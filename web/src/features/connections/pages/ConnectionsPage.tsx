@@ -1,14 +1,19 @@
 import { useState } from 'react'
-import { Alert, Button, Typography } from '@mui/material'
+import { Alert, Button } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
+import CampaignRoundedIcon from '@mui/icons-material/CampaignRounded'
+import { useAuthenticatedUser } from '@/features/auth/useAuth'
 import { softDeleteConnection } from '@/features/connections/api'
 import { ConnectionFormDialog } from '@/features/connections/components/ConnectionFormDialog'
-import { ConnectionList } from '@/features/connections/components/ConnectionList'
+import {
+  ConnectionList,
+  ConnectionListSkeleton,
+} from '@/features/connections/components/ConnectionList'
 import { useActiveConnections } from '@/features/connections/hooks/useActiveConnections'
 import type { Connection } from '@/features/connections/schemas'
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog'
 import { EmptyState } from '@/shared/components/EmptyState'
-import { ListSkeleton } from '@/shared/components/ListSkeleton'
+import { GradientBanner } from '@/shared/components/GradientBanner'
 import { getFirestoreErrorMessage } from '@/shared/lib/firestoreErrors'
 
 type DialogState =
@@ -17,30 +22,51 @@ type DialogState =
   | { type: 'rename'; connection: Connection }
   | { type: 'delete'; connection: Connection }
 
+const describeCount = (count: number) =>
+  count === 1 ? '1 conexão ativa' : `${count} conexões ativas`
+
 export function ConnectionsPage() {
+  const { email } = useAuthenticatedUser()
   const connectionsState = useActiveConnections()
   const [dialog, setDialog] = useState<DialogState>({ type: 'closed' })
 
   const openCreateDialog = () => setDialog({ type: 'create' })
   const closeDialog = () => setDialog({ type: 'closed' })
 
-  return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <Typography variant="h4" component="h1">
-            Conexões
-          </Typography>
-          <Typography color="text.secondary">
-            Cada conexão tem seus próprios contatos e mensagens.
-          </Typography>
-        </div>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={openCreateDialog}>
-          Nova conexão
-        </Button>
-      </header>
+  const greetingName = email?.split('@')[0] ?? ''
 
-      {connectionsState.status === 'loading' && <ListSkeleton />}
+  return (
+    <div className="flex flex-col gap-8">
+      <GradientBanner
+        eyebrow={greetingName ? `Olá, ${greetingName}` : undefined}
+        title="Suas conexões"
+        description={
+          <div className="flex flex-col gap-3">
+            <p>Cada conexão tem seus próprios contatos e mensagens.</p>
+            {connectionsState.status === 'success' && (
+              <span className="inline-flex w-fit items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-semibold">
+                <span aria-hidden className="size-2 rounded-full bg-white" />
+                {describeCount(connectionsState.data.length)}
+              </span>
+            )}
+          </div>
+        }
+        decorativeIcon={<CampaignRoundedIcon />}
+        action={
+          <Button
+            variant="contained"
+            color="inherit"
+            size="large"
+            startIcon={<AddIcon />}
+            onClick={openCreateDialog}
+            className="bg-white text-primary shadow-lg hover:bg-white/90"
+          >
+            Nova conexão
+          </Button>
+        }
+      />
+
+      {connectionsState.status === 'loading' && <ConnectionListSkeleton />}
 
       {connectionsState.status === 'error' && (
         <Alert severity="error">Não foi possível carregar as conexões. Recarregue a página.</Alert>
@@ -76,8 +102,8 @@ export function ConnectionsPage() {
           title="Excluir conexão?"
           description={
             <>
-              A conexão <strong>{dialog.connection.name}</strong> sairá da sua lista. Contatos e
-              mensagens ficam guardados no histórico, e as mensagens agendadas serão canceladas.
+              A conexão <strong>{dialog.connection.name}</strong> sai da sua lista. Contatos e
+              mensagens ficam guardados no histórico, e as mensagens agendadas dela são canceladas.
             </>
           }
           confirmLabel="Excluir"
