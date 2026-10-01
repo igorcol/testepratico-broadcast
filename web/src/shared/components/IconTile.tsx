@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react'
 
-type IconTileVariant = 'gradient' | 'soft'
+type IconTileVariant = 'gradient' | 'soft' | 'glass'
 type IconTileSize = 'sm' | 'md' | 'lg'
 
 const VARIANT_CLASSES: Record<IconTileVariant, string> = {
   gradient: 'bg-brand-gradient text-white shadow-md shadow-primary/25',
   soft: 'bg-primary/10 text-primary',
+  glass: 'bg-white/15 text-white ring-1 ring-white/20 backdrop-blur',
 }
 
 const SIZE_CLASSES: Record<IconTileSize, string> = {

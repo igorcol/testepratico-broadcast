@@ -15,9 +15,12 @@ export function RegisterPage() {
 
   return (
     <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <Typography variant="h5" component="h1">
-        Criar conta
-      </Typography>
+      <div className="flex flex-col gap-1">
+        <Typography variant="h5" component="h1">
+          Criar conta
+        </Typography>
+        <Typography color="text.secondary">Comece a enviar mensagens em poucos minutos.</Typography>
+      </div>
 
       <TextField
         name="email"

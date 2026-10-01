@@ -15,9 +15,12 @@ export function LoginPage() {
 
   return (
     <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <Typography variant="h5" component="h1">
-        Entrar
-      </Typography>
+      <div className="flex flex-col gap-1">
+        <Typography variant="h5" component="h1">
+          Entrar
+        </Typography>
+        <Typography color="text.secondary">Bem-vindo de volta! Acesse sua conta para continuar.</Typography>
+      </div>
 
       <TextField
         name="email"
