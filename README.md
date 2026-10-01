@@ -76,6 +76,7 @@
 - 📱 **100% Responsivo**
 - 🧪 **Testes automatizados** das regras de segurança, das Cloud Functions e das regras de negócio do frontend
 - 🎯 **Filtro de mensagens por contato**
+- ✍️ **Formatação de mensagem** (negrito, itálico, tachado e monoespaçado) com barra, atalhos Ctrl+B e Ctrl+I e pré-visualização
 
 ---
 
