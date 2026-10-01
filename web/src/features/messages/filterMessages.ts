@@ -15,15 +15,34 @@ const compareMessages = (a: Message, b: Message) => {
   return timeOf(b.sentAt) - timeOf(a.sentAt)
 }
 
-const isVisible = (message: Message) => message.status !== 'canceled' // Canceladas não aparecem na tela
+const isVisible = (message: Message) => message.status !== 'canceled'
 
-export const filterAndSortMessages = (messages: Message[], filter: MessageFilter) =>
+// Sem contato escolhido vale qualquer mensagem, com contato só as que foram pra ele
+
+const isSentTo = (message: Message, contactId: string | null) =>
+  contactId === null || message.recipients.some((recipient) => recipient.contactId === contactId)
+
+export const filterAndSortMessages = (
+  messages: Message[],
+  filter: MessageFilter,
+  contactId: string | null = null,
+) =>
   messages
-    .filter((message) => isVisible(message) && (filter === 'all' || message.status === filter))
+    .filter(
+      (message) =>
+        isVisible(message) &&
+        isSentTo(message, contactId) &&
+        (filter === 'all' || message.status === filter),
+    )
     .toSorted(compareMessages)
 
-export const countMessagesByFilter = (messages: Message[]): Record<MessageFilter, number> => {
-  const visibleMessages = messages.filter(isVisible)
+export const countMessagesByFilter = (
+  messages: Message[],
+  contactId: string | null = null,
+): Record<MessageFilter, number> => {
+  const visibleMessages = messages.filter(
+    (message) => isVisible(message) && isSentTo(message, contactId),
+  )
 
   return {
     all: visibleMessages.length,

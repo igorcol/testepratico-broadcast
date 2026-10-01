@@ -1,8 +1,18 @@
 import { useState, type MouseEvent } from 'react'
-import { Alert, Button, Paper, ToggleButton, ToggleButtonGroup } from '@mui/material'
+import {
+  Alert,
+  Autocomplete,
+  Button,
+  Paper,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+} from '@mui/material'
 import MarkChatUnreadRoundedIcon from '@mui/icons-material/MarkChatUnreadRounded'
 import SendIcon from '@mui/icons-material/Send'
 import { useSearchParams } from 'react-router'
+import { filterAndSortContacts } from '@/features/contacts/filterContacts'
+import { useContacts } from '@/features/contacts/hooks/useContact'
 import { deleteMessage } from '@/features/messages/api'
 import { MessageComposerDialog } from '@/features/messages/components/MessageComposerDialog'
 import { MessageList } from '@/features/messages/components/MessageList'
@@ -18,20 +28,13 @@ import type { Message } from '@/features/messages/schemas'
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog'
 import { EmptyState } from '@/shared/components/EmptyState'
 import { ListSkeleton } from '@/shared/components/ListSkeleton'
-import { getFirestoreErrorMessage } from '@/shared/lib/firestoreErrors'
-import { useContacts } from '@/features/contacts/hooks/useContact'
 import { ScrollRegion } from '@/shared/components/ScrollRegion'
+import { getFirestoreErrorMessage } from '@/shared/lib/firestoreErrors'
 
 const FILTER_LABELS: Record<MessageFilter, string> = {
   all: 'Todas',
   scheduled: 'Agendadas',
   sent: 'Enviadas',
-}
-
-const EMPTY_FILTER_TITLES: Record<MessageFilter, string> = {
-  all: 'Nenhuma mensagem ainda',
-  scheduled: 'Nenhuma mensagem agendada',
-  sent: 'Nenhuma mensagem enviada',
 }
 
 type DialogState =
@@ -50,22 +53,29 @@ export function MessagesTab({ connectionId }: MessagesTabProps) {
   const [searchParams, setSearchParams] = useSearchParams()
   const [dialog, setDialog] = useState<DialogState>({ type: 'closed' })
 
+  const contacts = contactsState.status === 'success' ? contactsState.data : []
+  const sortedContacts = filterAndSortContacts(contacts, '', 'name-asc')
+
   const filterParam = searchParams.get('filter')
   const filter: MessageFilter = isMessageFilter(filterParam) ? filterParam : 'all'
 
-  const contacts = contactsState.status === 'success' ? contactsState.data : []
+  const selectedContact = contacts.find(({ id }) => id === searchParams.get('contact')) ?? null
+  const selectedContactId = selectedContact?.id ?? null
+
   const allMessages = messagesState.status === 'success' ? messagesState.data : []
-  const visibleMessages = filterAndSortMessages(allMessages, filter)
-  const counts = countMessagesByFilter(allMessages)
+  const visibleMessages = filterAndSortMessages(allMessages, filter, selectedContactId)
+  const counts = countMessagesByFilter(allMessages, selectedContactId)
 
   const isLoading = contactsState.status === 'loading' || messagesState.status === 'loading'
   const hasError = contactsState.status === 'error' || messagesState.status === 'error'
   const hasNoContacts = contactsState.status === 'success' && contacts.length === 0
+  const hasActiveFilters = filter !== 'all' || selectedContactId !== null
 
-  const changeFilter = (nextFilter: MessageFilter) => {
+  const updateSearchParam = (key: string, value: string | null) => {
     setSearchParams(
       (params) => {
-        params.set('filter', nextFilter)
+        if (value) params.set(key, value)
+        else params.delete(key)
         return params
       },
       { replace: true },
@@ -73,7 +83,18 @@ export function MessagesTab({ connectionId }: MessagesTabProps) {
   }
 
   const handleFilterChange = (_event: MouseEvent<HTMLElement>, value: MessageFilter | null) => {
-    if (value) changeFilter(value)
+    if (value) updateSearchParam('filter', value)
+  }
+
+  const clearFilters = () => {
+    setSearchParams(
+      (params) => {
+        params.delete('filter')
+        params.delete('contact')
+        return params
+      },
+      { replace: true },
+    )
   }
 
   const goToContactsTab = () => {
@@ -89,23 +110,41 @@ export function MessagesTab({ connectionId }: MessagesTabProps) {
   return (
     <div className="flex flex-col gap-4 lg:min-h-0 lg:flex-1">
       <Paper variant="outlined" className="flex flex-wrap items-center justify-between gap-3 p-3">
-        <ToggleButtonGroup
-          exclusive
-          size="small"
-          value={filter}
-          onChange={handleFilterChange}
-          aria-label="Filtrar mensagens"
-          className="gap-1 rounded-xl bg-slate-100 p-1 [&_.MuiToggleButtonGroup-grouped]:rounded-lg [&_.MuiToggleButtonGroup-grouped]:border-0 [&_.MuiToggleButtonGroup-grouped]:px-3 [&_.MuiToggleButtonGroup-grouped.Mui-selected]:bg-white [&_.MuiToggleButtonGroup-grouped.Mui-selected]:text-primary [&_.MuiToggleButtonGroup-grouped.Mui-selected]:shadow-sm"
-        >
-          {MESSAGE_FILTERS.map((option) => (
-            <ToggleButton key={option} value={option}>
-              {FILTER_LABELS[option]}
-              <span className="ml-2 rounded-full bg-slate-200/80 px-1.5 text-xs tabular-nums">
-                {counts[option]}
-              </span>
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
+        <div className="flex flex-wrap items-center gap-3">
+
+          <ToggleButtonGroup
+            exclusive
+            size="small"
+            value={filter}
+            onChange={handleFilterChange}
+            aria-label="Filtrar mensagens por status"
+            className="gap-1 rounded-xl bg-slate-100 p-1 [&_.MuiToggleButtonGroup-grouped]:rounded-lg [&_.MuiToggleButtonGroup-grouped]:border-0 [&_.MuiToggleButtonGroup-grouped]:px-3 [&_.MuiToggleButtonGroup-grouped.Mui-selected]:bg-white [&_.MuiToggleButtonGroup-grouped.Mui-selected]:text-primary [&_.MuiToggleButtonGroup-grouped.Mui-selected]:shadow-sm"
+          >
+            {MESSAGE_FILTERS.map((option) => (
+              <ToggleButton key={option} value={option}>
+                {FILTER_LABELS[option]}
+                <span className="ml-2 rounded-full bg-slate-200/80 px-1.5 text-xs tabular-nums">
+                  {counts[option]}
+                </span>
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+
+          <Autocomplete
+            size="small"
+            options={sortedContacts}
+            value={selectedContact}
+            onChange={(_event, contact) => updateSearchParam('contact', contact?.id ?? null)}
+            getOptionLabel={({ name }) => name}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            noOptionsText="Nenhum contato encontrado"
+            disabled={contacts.length === 0}
+            className="w-60"
+            renderInput={(params) => (
+              <TextField {...params} label="Contato" placeholder="Todos os contatos" />
+            )}
+          />
+        </div>
 
         <Button
           variant="contained"
@@ -139,18 +178,18 @@ export function MessagesTab({ connectionId }: MessagesTabProps) {
       {!isLoading && !hasError && visibleMessages.length === 0 && (
         <EmptyState
           icon={<MarkChatUnreadRoundedIcon />}
-          title={EMPTY_FILTER_TITLES[filter]}
+          title={hasActiveFilters ? 'Nenhuma mensagem encontrada' : 'Nenhuma mensagem ainda'}
           description={
-            filter === 'all'
-              ? 'Envie agora ou agende uma mensagem para os contatos desta conexão.'
-              : 'Nada por aqui com esse filtro.'
+            hasActiveFilters
+              ? 'Nada corresponde aos filtros escolhidos.'
+              : 'Envie agora ou agende uma mensagem para os contatos desta conexão.'
           }
           action={
-            filter === 'all' ? undefined : (
-              <Button variant="outlined" onClick={() => changeFilter('all')}>
-                Ver todas
+            hasActiveFilters ? (
+              <Button variant="outlined" onClick={clearFilters}>
+                Limpar filtros
               </Button>
-            )
+            ) : undefined
           }
         />
       )}
