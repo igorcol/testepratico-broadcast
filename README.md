@@ -34,8 +34,6 @@
 
 ## ⚡ Como testar em 3 minutos
 
-> Não há conta pronta. Criar a sua é parte do teste, porque é assim que o isolamento entre clientes aparece.
-
 | # | Faça | Observe |
 |:-:|---|---|
 | 1 | Crie uma conta em [testepratico-broadcast.web.app](https://testepratico-broadcast.web.app) | Você entra direto na lista de conexões |
@@ -59,11 +57,10 @@
 | ✍️ Escrever e enviar na hora | Modal de composição com a opção **Enviar agora** |
 | ⏰ Agendar para data e hora futuras | Opção **Agendar**, com a data validada no formulário e no servidor |
 | 👀 Visualizar e filtrar | Lista com filtro **Todas / Agendadas / Enviadas** e contadores |
-| 📝 Editar e excluir mensagens | Agendadas mudam texto, contatos e data. Enviadas mudam texto e contatos e ficam marcadas como editadas |
-| 🤖 Agendada vira Enviada no backend | Cloud Function que roda a cada minuto, independente de o app estar aberto |
-| 🏢 Multi-tenant e isolamento | Security Rules do Firestore, cobertas por **67 testes automatizados** |
+| 🤖 Envio agendado | Cloud Function que roda a cada minuto, independente de o app estar aberto |
+| 🏢 Multi-tenant e isolamento | Security Rules do Firestore, cobertas por **~67 testes automatizados** |
 | 🎨 Material UI + Tailwind | MUI para componentes, Tailwind para layout, convivendo sem conflito de estilos |
-| λ Paradigma funcional | Nenhuma classe no projeto. Funções puras, hooks e dados imutáveis |
+| ⚙️ Sem classes | Nenhuma classe no projeto. Funções puras, hooks e dados imutáveis |
 | 🔄 Tempo real | Todas as listas atualizam sozinhas, inclusive o status das mensagens |
 | ⚡ Vite | Frontend inteiro em Vite |
 | 🗂️ Sem subcoleções | Três coleções na raiz, ligadas por campos |
@@ -73,12 +70,10 @@
 
 ## ✨ Além do pedido
 
-- 🔎 **Busca e ordenação de contatos**, sem diferenciar acentos e com o filtro guardado no link
-- 📞 **Telefone padronizado**: aceita qualquer formato e grava sempre no padrão internacional
-- 🚫 **Aviso de telefone duplicado** na mesma conexão
-- ❌ **Cancelamento automático**: excluir uma conexão cancela as mensagens agendadas dela
+- 🔎 **Busca e ordenação de contatos**
+- ❌ **Cancelamento automático**: Excluir uma conexão cancela as mensagens agendadas dela
 - 🔗 **Estado na URL**: aba, busca, ordenação e filtro sobrevivem ao F5 e podem ser compartilhados
-- 📱 **Responsivo**, com a tela de composição em tela cheia no celular
+- 📱 **100% Responsivo**
 - 🧪 **Testes automatizados** das regras de segurança, das Cloud Functions e das regras de negócio do frontend
 
 ---
@@ -122,8 +117,6 @@ erDiagram
 | `contacts` | Os contatos de cada conexão | Telefone sempre no padrão internacional (`+5511999998888`) |
 | `messages` | As mensagens de cada conexão | `recipients` guarda uma **cópia** de nome e telefone no momento do envio |
 
-**Por que não existe uma coleção de usuários?** O cliente é o próprio usuário do Firebase Authentication. O `uid` dele já é o identificador do tenant, então uma coleção só para isso seria duplicação.
-
 ### Ciclo de vida da mensagem
 
 ```mermaid
@@ -133,7 +126,6 @@ stateDiagram-v2
     [*] --> Agendada: agendar
     Agendada --> Enviada: Cloud Function no horário
     Agendada --> Cancelada: conexão excluída
-    Enviada --> Enviada: edição, fica marcada como editada
 ```
 
 > 🔒 **Só o servidor muda o status.** O app cria e edita mensagens, mas as regras de segurança impedem qualquer cliente de marcar uma mensagem como enviada ou cancelada.
@@ -196,10 +188,9 @@ sequenceDiagram
 | `processScheduledMessages` | A cada 1 minuto | Envia as agendadas cujo horário já passou, em lotes |
 | `onConnectionDeleted` | Quando uma conexão é excluída | Cancela as agendadas daquela conexão. As já enviadas ficam no histórico |
 
-- 🎯 **Precisão de até 1 minuto.** Uma mensagem agendada para 14:30 sai entre 14:30 e 14:31. O próprio formulário avisa o usuário.
 - 🔁 **Seguro contra edição simultânea.** Se o usuário edita uma mensagem no exato momento em que a function vai enviá-la, a function não sobrescreve a edição e tenta de novo na rodada seguinte.
 - ♻️ **Idempotente.** Rodar a mesma function duas vezes dá o mesmo resultado, o que torna seguras as reexecuções automáticas do Firebase.
-- 🌎 **Tudo em São Paulo** (`southamerica-east1`): banco e functions na mesma região.
+
 
 ---
 
@@ -209,29 +200,13 @@ sequenceDiagram
 |---|---|
 | **Exclusão lógica de conexões** | Preserva o histórico de mensagens. A conexão some da tela, mas os dados continuam guardados |
 | **Cópia dos destinatários na mensagem** | Excluir ou editar um contato não altera o histórico do que já foi enviado |
-| **Edição de mensagem enviada** | Permitida, como pede o enunciado. Ela continua enviada e fica marcada como editada |
 | **Telefone no padrão internacional** | Um formato só no banco evita duplicados disfarçados, como `(11) 9999...` e `11 9999...` |
-| **Validação de tudo que vem de fora** | Formulários, documentos do banco e variáveis de ambiente passam por validação (zod), e os tipos do TypeScript saem dessas validações |
+| **Validação de tudo que vem de fora** | Formulários, documentos do banco e variáveis de ambiente passam por zod, e os tipos do TypeScript saem dessas validações |
 | **Paradigma funcional** | Nenhuma classe. Funções puras para regras de negócio, hooks para estado e recursão no lugar de laços nas functions |
 | **Tempo real em todas as listas** | Conexões, contatos e mensagens usam os listeners do Firestore. O status "Enviada" aparece sem recarregar |
 | **Filtro e ordenação na tela** | As listas são de uma conexão só e já estão carregadas em tempo real. Isso dispensa índices extras no banco |
 | **Poucas dependências** | Além do obrigatório, só React Router (rotas) e zod (validação). Seletor de data, formulários e estado global foram resolvidos sem bibliotecas |
 | **Mensagens de erro em português** | Erros técnicos do Firebase viram mensagens claras para o usuário, e o detalhe vai para o console |
-
----
-
-## ⚠️ Limitações conhecidas
-
-O que ficou de fora do escopo, e o caminho para resolver em produção:
-
-| Limitação | Como resolveria em produção |
-|---|---|
-| Telefone duplicado é checado só na tela | Criação de contatos por uma Cloud Function, ou o telefone como ID do documento |
-| As regras não validam cada destinatário da lista | Criação de mensagens por uma Cloud Function, montando os destinatários a partir dos contatos reais |
-| Sem limite de criação de documentos por usuário | Firebase App Check e cotas por cliente |
-| Dados de conexões excluídas ficam guardados para sempre | Política de retenção com expurgo automático, por causa da LGPD |
-| Um usuário por cliente | Coleção `tenants` com membros e papéis, mantendo o `tenantId` nos documentos |
-| Envio simulado | A function de envio chamaria a API do WhatsApp no lugar de só mudar o status |
 
 ---
 
@@ -293,24 +268,6 @@ Em desenvolvimento, o app usa os **emuladores** do Firebase: nada toca o banco r
 | 🖐️ Manual | `firebase emulators:start` na raiz e `npm run dev` dentro de `web` |
 
 O app abre em `http://localhost:5173` e o painel dos emuladores em `http://127.0.0.1:4000`.
-
-### Testes
-
-Com os emuladores rodando:
-
-| O quê | Onde | Comando |
-|---|---|---|
-| Tipos, lint e testes unitários | `web/` | `npm run check` |
-| Regras de segurança | `web/` | `npm run test:rules` |
-| Cloud Functions | `functions/` | `npm test` |
-
-### Deploy
-
-```bash
-firebase deploy
-```
-
-Publica o app, as regras, os índices e as functions de uma vez.
 
 ---
 
