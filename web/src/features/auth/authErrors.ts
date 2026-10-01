@@ -4,6 +4,8 @@ const DEFAULT_AUTH_ERROR_MESSAGE = 'Não foi possível concluir a operação. Te
 
 const authErrorMessages: Record<string, string> = {
   'auth/invalid-credential': 'E-mail ou senha incorretos.',
+  'auth/user-not-found': 'E-mail ou senha incorretos.',
+  'auth/wrong-password': 'E-mail ou senha incorretos.',
   'auth/invalid-email': 'E-mail inválido.',
   'auth/email-already-in-use': 'Este e-mail já está cadastrado.',
   'auth/weak-password': 'A senha precisa ter pelo menos 6 caracteres.',
