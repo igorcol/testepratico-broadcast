@@ -16,7 +16,7 @@ import PeopleAltRoundedIcon from '@mui/icons-material/PeopleAltRounded'
 import SendRoundedIcon from '@mui/icons-material/SendRounded'
 import { IconTile } from '@/shared/components/IconTile'
 
-const CONNECTION_TABS = ['contacts', 'messages'] as const
+const CONNECTION_TABS = ['messages', 'contacts'] as const
 
 type ConnectionTab = (typeof CONNECTION_TABS)[number]
 
@@ -70,7 +70,7 @@ function ConnectionDetail({ connectionId }: ConnectionDetailProps) {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const tabParam = searchParams.get('tab')
-  const activeTab: ConnectionTab = isConnectionTab(tabParam) ? tabParam : 'contacts'
+  const activeTab: ConnectionTab = isConnectionTab(tabParam) ? tabParam : 'messages'
 
   const handleTabChange = (_event: SyntheticEvent, tab: ConnectionTab) => {
     setSearchParams(
@@ -113,13 +113,8 @@ function ConnectionDetail({ connectionId }: ConnectionDetailProps) {
               Criada em {formatDateTime(view.connection.createdAt)}
             </Typography>
           </div>
-          <span className="inline-flex items-center gap-2 rounded-full bg-success/10 px-3 py-1 text-sm font-semibold text-success">
-            <span aria-hidden className="size-2 rounded-full bg-success" />
-            Ativa
-          </span>
         </header>
 
-        {/* Abas em pílula, a selecionada ganha fundo verde claro no lugar da linha embaixo */}
         <div className="border-t border-divider px-4 py-3">
           <Tabs
             value={activeTab}
@@ -127,20 +122,20 @@ function ConnectionDetail({ connectionId }: ConnectionDetailProps) {
             className="min-h-0 [&_.MuiTabs-indicator]:hidden **:[[role=tablist]]:gap-2"
           >
             <Tab
-              label="Contatos"
-              value="contacts"
-              id="tab-contacts"
-              aria-controls="tabpanel-contacts"
-              icon={<PeopleAltRoundedIcon fontSize="small" />}
-              iconPosition="start"
-              className="min-h-0 rounded-xl px-4 py-2.5 aria-selected:bg-primary/10"
-            />
-            <Tab
               label="Mensagens"
               value="messages"
               id="tab-messages"
               aria-controls="tabpanel-messages"
               icon={<SendRoundedIcon fontSize="small" />}
+              iconPosition="start"
+              className="min-h-0 rounded-xl px-4 py-2.5 aria-selected:bg-primary/10"
+            />
+            <Tab
+              label="Contatos"
+              value="contacts"
+              id="tab-contacts"
+              aria-controls="tabpanel-contacts"
+              icon={<PeopleAltRoundedIcon fontSize="small" />}
               iconPosition="start"
               className="min-h-0 rounded-xl px-4 py-2.5 aria-selected:bg-primary/10"
             />
