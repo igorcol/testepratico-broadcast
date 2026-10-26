@@ -6,7 +6,8 @@ import { BrandLogo } from '@/shared/components/BrandLogo'
 import { useScheduledSendNotifications } from '@/features/messages/hooks/useScheduledSendNotifications'
 
 export function AppLayout() {
-  useScheduledSendNotifications()
+  
+  useScheduledSendNotifications() // Listener dos avisos de msg enviado (toast)
 
   return (
     <div className="min-h-screen lg:flex lg:h-screen lg:flex-col">

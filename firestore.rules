@@ -1,5 +1,7 @@
 rules_version = '2';
 
+// >> Quem pode ler e escrever o quê
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
