@@ -12,13 +12,13 @@ export const updateIfUnchanged = async (
 ): Promise<number> => {
   const results = await Promise.allSettled(
     documents.map((document) =>
-      document.ref.update(changes, { lastUpdateTime: document.updateTime }),
+      document.ref.update(changes, { lastUpdateTime: document.updateTime }),''
     ),
   )
 
   results.forEach((result, index) => {
     if (result.status === 'rejected') {
-      warn('Document skipped, it changed after being read', {
+      warn('Documento rejeitado. Foi alterado desde a ultima leitura', {
         path: documents[index]?.ref.path,
         reason: String(result.reason),
       })
