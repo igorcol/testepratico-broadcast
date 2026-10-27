@@ -12,7 +12,7 @@ export const updateIfUnchanged = async (
 ): Promise<number> => {
   const results = await Promise.allSettled(
     documents.map((document) =>
-      document.ref.update(changes, { lastUpdateTime: document.updateTime }),''
+      document.ref.update(changes, { lastUpdateTime: document.updateTime }),'' // Proteção contra edição simultânea
     ),
   )
 
